@@ -1,0 +1,24 @@
+{
+  "name": "psplusapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "getPSPlusGames.js",
+  "scripts": {
+    "start": "node getPSPlusGames.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SebastiaoCarvalho/psPlusApi.git"
+  },
+  "author": "Sebastião Carvalho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SebastiaoCarvalho/psPlusApi/issues"
+  },
+  "homepage": "https://github.com/SebastiaoCarvalho/psPlusApi#readme",
+  "engines": {
+    "node": "17.1.0",
+    "npm": "8.1.2"
+  }
+}
