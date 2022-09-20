@@ -1,5 +1,5 @@
 const {spawn} = require('child_process');
-const {getGameRating} = require("../getGameRating.js");
+// const {getGameRating} = require("../getGameRating.js");
 const express = require("express");
 
 const app = express();
@@ -42,7 +42,7 @@ async function parseGames(str) {
     let lines = str.split("\n");
     for (let i = 0; i < (lines.length - 2) / 4; i++) {
         let title = lines[i * 4 ];
-        let rating = await getGameRating(title);
+        // let rating = await getGameRating(title);
         let game = {title : title, url : lines[i * 4 + 3],
         description : lines[i * 4 + 1], imageUrl : lines[i * 4 + 2], rating : rating}
         games.push(game);
