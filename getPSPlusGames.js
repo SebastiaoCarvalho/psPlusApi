@@ -10,7 +10,6 @@ app.get('/', (request, response) => {
 });
 
 app.get('/games', async (request, response) => {
-    console.log(request.body);
     let data = await getPsPlusGames(response);
     
 });
@@ -23,6 +22,7 @@ async function getPsPlusGames(response) {
     let text;
     python.stdout.on('data', function (data) {
         console.log('Pipe data from python script ...');
+        console.log("text : " + text);
         text = data.toString();
     });
     
@@ -45,10 +45,10 @@ async function parseGames(str) {
         let title = lines[i * 4 ];
         // let rating = await getGameRating(title);
         let game = {title : title, url : lines[i * 4 + 3],
-        description : lines[i * 4 + 1], imageUrl : lines[i * 4 + 2], rating : rating}
+        description : lines[i * 4 + 1], imageUrl : lines[i * 4 + 2], rating : null}
         games.push(game);
     }
-    endDate = lines[lines.length - 2];
+    endDate = new Date(lines[lines.length - 2]);
     return {current : games, endDate : endDate};
 }
 
