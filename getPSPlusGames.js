@@ -20,13 +20,14 @@ async function getPsPlusGames(response) {
     
     // collect data from script
     let text;
-    if (python.stdout == null)
-        console.log("error");
+    
     python.stdout.on('data', function (data) {
         console.log('Pipe data from python script ...');
         console.log("text : " + text);
         text = data.toString();
     });
+
+    python.stderr.on('data', data => console.error(`sterr : ${data}`));
     
     // in close event we are sure that stream from child process is closed
     python.on('close', async (code) => {
