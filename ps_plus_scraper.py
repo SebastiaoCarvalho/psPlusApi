@@ -31,9 +31,8 @@ game_list = []
 
 for i in range(1, len(boxes)):
     box = boxes[i]
-    txt = box.find_elements(By.TAG_NAME, "p")
-    title = txt[0].text
-    description = txt[1].text
+    title = box.find_element(By.TAG_NAME, "h3").text
+    description = box.find_element(By.TAG_NAME, "p").text
     img = box.find_element(By.CLASS_NAME, "imageblock").find_element(By.TAG_NAME, "source").get_attribute("srcset")
     url = box.find_element(By.CLASS_NAME, "button").find_element(By.TAG_NAME, "a").get_attribute("href")
     print(title)
