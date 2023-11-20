@@ -3,11 +3,15 @@ const {Options} = require('selenium-webdriver/chrome');
 const { get } = require('selenium-webdriver/http');
 const fs = require('fs');
 
-async function getPsPlusEssentialGames() {
+function getDriver() {
     let options = new Options();
     options.addArguments("--headless");
-    let driver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
-    let obj = null;
+   return new Builder().forBrowser("chrome").setChromeOptions(options).build();
+}
+
+async function getPsPlusEssentialGames() {
+    let driver = await getDriver();
+    let obj = {};
     try {
         driver.get("https://www.playstation.com/pt-pt/ps-plus/whats-new/");
         saveScreenShot("test.png", driver);
@@ -26,6 +30,46 @@ async function getPsPlusEssentialGames() {
         }
         let date = await getEssentialExpirationDate(driver, games[0].url);
         obj = {games : games, date : date};
+    }
+    finally {
+        await driver.quit();
+    }
+    return obj;
+}
+
+async function getPsPlusExtraNewGames() {
+    return await fetchGamesFromCarousel(0);
+}
+
+async function getPsPlusPremiumNewGames() {
+    return await fetchGamesFromCarousel(1);
+}
+
+async function fetchGamesFromCarousel(carouselNumber) {
+    let driver = await getDriver();
+    let obj = {};
+    try {
+        driver.get("https://www.playstation.com/pt-pt/ps-plus/whats-new/");
+        saveScreenShot("test.png", driver);
+
+        let carousels = await driver.findElements(By.css("div[class*='simple-carousel  simple-carousel--same-height']"));
+        let carousel = carousels[carouselNumber]; // Extra is the first and Premium is the second
+        let cards = await carousel.findElements(By.css("a[class*='card']"));
+        let nextButton = await carousel.findElement(By.css("div[class='btn--quick-action carousel-nav-next btn--quick-action--large btn--quick-action--primary']"));
+        console.log(nextButton);
+        cards = cards.slice(0, cards.length/2); // For some reason the carousel has 2 sequences of the same cards
+        let games = [];
+        for (let i = 0; i < cards.length; i++) {
+            let card = cards[i];
+            let title = await card.findElement(By.css("h5")).getText();
+            let description = await card.findElement(By.css("p[class='txt-style-utility mt--none']")).getText();
+            let img = await card.findElement(By.css("picture")).findElement(By.css("source")).getAttribute("srcset");
+            let url = await card.getAttribute("href");
+            let game = new Game(title, description, img, url);
+            await nextButton.click();
+            games.push(game);
+        }
+        obj = games;
     }
     finally {
         await driver.quit();
@@ -94,3 +138,5 @@ class Game {
 }
 
 exports.getPsPlusEssentialGames = getPsPlusEssentialGames;
+exports.getPsPlusExtraNewGames = getPsPlusExtraNewGames;
+exports.getPsPlusPremiumNewGames = getPsPlusPremiumNewGames;
