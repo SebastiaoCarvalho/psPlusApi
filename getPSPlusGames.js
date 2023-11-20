@@ -2,7 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const { getPsPlusEssentialGames } = require('./psPlusScraper');
+const { getPsPlusEssentialGames, getPsPlusExtraNewGames, getPsPlusPremiumNewGames } = require('./psPlusScraper');
+const { get } = require("selenium-webdriver/http");
 
 const app = express();
 const PORT = process.env.PORT || 3000
@@ -22,7 +23,7 @@ app.get('/', (request, response) => {
  *     tags: [Games]
  *     responses:
  *       200:
- *         description: The games and expiration date.
+ *         description: OK
  *         content:
  *           application/json:
  *             schema:
@@ -42,13 +43,58 @@ app.get('/', (request, response) => {
  *
  */
 app.get('/games', async (request, response) => {
-    await getPsPlusGames(response);
+    response.json(await parseGames(await getPsPlusEssentialGames()));
 });
 
-async function getPsPlusGames(response) {
-    response.json(await parseGames(await getPsPlusEssentialGames()));
-}
+/**
+ * @swagger
+ * /games/extra:
+ *   get:
+ *     summary: Get the newest additions for Ps Plus Extra tier
+ *     tags: [Games]
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               description: The new games that are free for Ps Plus Extra tier
+ *               items:
+ *                 $ref: '#/components/schemas/Game'
+ * 
+ *       500:
+ *         description: Some server error
+ *
+ */
+app.get('/games/extra', async (request, response) => {
+    response.json(await getPsPlusExtraNewGames());
+});
 
+/**
+ * @swagger
+ * /games/premium:
+ *   get:
+ *     summary: Get the newest additions for Ps Plus Premium tier
+ *     tags: [Games]
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               description: The new games that are free for Ps Plus Premium tier
+ *               items:
+ *                 $ref: '#/components/schemas/Game'
+ * 
+ *       500:
+ *         description: Some server error
+ *
+ */
+app.get('/games/premium', async (request, response) => {
+    response.json(await getPsPlusPremiumNewGames());
+});
 
 /**
  * @swagger
@@ -95,11 +141,6 @@ const options = {
           name: "MIT",
           url: "https://spdx.org/licenses/MIT.html",
         },
-        /* contact: {
-          name: "LogRocket",
-          url: "https://logrocket.com",
-          email: "info@email.com",
-        }, */
       },
       servers: [
         {
