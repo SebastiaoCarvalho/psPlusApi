@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const { getPsPlusEssentialGames, getPsPlusExtraNewGames, getPsPlusPremiumNewGames } = require('./psPlusScraper');
+const { getPsPlusEssentialGames, getPsPlusExtraNewGames, getPsPlusPremiumNewGames, getPsPlusExtraAllGames } = require('./psPlusScraper');
 const { get } = require("selenium-webdriver/http");
 
 const app = express();
@@ -94,6 +94,10 @@ app.get('/games/extra', async (request, response) => {
  */
 app.get('/games/premium', async (request, response) => {
     response.json(await getPsPlusPremiumNewGames());
+});
+
+app.get('/games/extra/all', async (request, response) => {
+    response.json(await getPsPlusExtraAllGames());
 });
 
 /**
