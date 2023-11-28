@@ -76,6 +76,9 @@ async function fetchGamesFromCarousel(carouselNumber) {
         saveScreenShot("test.png", driver);
 
         let carousels = await driver.findElements(By.css("div[class*='simple-carousel  simple-carousel--same-height']"));
+        if (carousels.length < carouselNumber + 1) {
+            return obj;
+        }
         let carousel = carousels[carouselNumber]; // Extra is the first and Premium is the second
         let cards = await carousel.findElements(By.css("a[class*='card']"));
         let nextButton = await carousel.findElement(By.css("div[class='btn--quick-action carousel-nav-next btn--quick-action--large btn--quick-action--primary']"));
@@ -91,6 +94,35 @@ async function fetchGamesFromCarousel(carouselNumber) {
             let game = new Game(title, description, img, url);
             await nextButton.click();
             games.push(game);
+        }
+        obj = games;
+    }
+    finally {
+        await driver.quit();
+    }
+    return obj;
+}
+
+async function getPsPlusExtraAllGames() {
+    let driver = await getDriver();
+    let obj = {};
+    try {
+        driver.get("https://www.playstation.com/pt-pt/ps-plus/games/");
+        saveScreenShot("test.png", driver);
+
+        let gamesListScreens = await driver.findElement(By.className("autogameslist"))
+                .findElements(By.css("div[class*='tabs__tab-content']"));
+        console.log(gamesListScreens.length)
+        let games = [];
+        for (let gamesListScreen of gamesListScreens) {
+            let gamesElements = await gamesListScreen.findElements(By.css("p[class='txt-style-base']"));
+            for (let gameElement of gamesElements) {
+                let gameLinkElement = await gameElement.findElement(By.css("a"));
+                let title = await gameLinkElement.getAttribute("data-dtm-label");
+                let url = await gameLinkElement.getAttribute("href");
+                let game = new Game(title, null, null, url);
+                games.push(game);
+            }
         }
         obj = games;
     }
@@ -155,3 +187,4 @@ class Game {
 exports.getPsPlusEssentialGames = getPsPlusEssentialGames;
 exports.getPsPlusExtraNewGames = getPsPlusExtraNewGames;
 exports.getPsPlusPremiumNewGames = getPsPlusPremiumNewGames;
+exports.getPsPlusExtraAllGames = getPsPlusExtraAllGames;
