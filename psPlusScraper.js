@@ -9,18 +9,18 @@ async function getPsPlusEssentialGames() {
     let driver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
     let obj = null;
     try {
-        driver.get("https://www.playstation.com/pt-pt/ps-plus/whats-new/");
+        driver.get("https://www.playstation.com/en-us/ps-plus/whats-new/");
         saveScreenShot("test.png", driver);
 
     
-        let boxes = await driver.findElement(By.className("cmp-experiencefragment--your-latest-monthly-games")).findElements(By.className("box"));
+        let boxes = await driver.findElement(By.className("cmp-experiencefragment--wn-latest-monthly-games-content")).findElements(By.className("box--light"));
         let games = [];
         for (let i = 0; i < boxes.length; i++) {
             let box = boxes[i];
             let title = await box.findElement(By.css("h3")).getText();
             let description = await box.findElement(By.css("p")).getText();
             let img = await box.findElement(By.className("imageblock")).findElement(By.css("source")).getAttribute("srcset");
-            let url = await box.findElement(By.className("button")).findElement(By.css("a")).getAttribute("href");
+            let url = await box.findElement(By.className("btn--cta__btn-container")).findElement(By.css("a")).getAttribute("href");
             let  game = new Game(title, description, img, url);
             games.push(game);
         }
@@ -42,21 +42,12 @@ async function saveScreenShot(fileName, driver) {
 async function getEssentialExpirationDate(driver, url) {
     driver.get(url);
 
-    let label = null;
-    let labels = await driver.findElements(By.css("label"));
-
-    for (let tempLabel of labels) {
-        if ((await tempLabel.getAttribute("data-qa")) == "mfeCtaMain#offer1") {
-            label = tempLabel
-            break
-        }
-    }
-    spans = await label.findElements(By.css("span"));
-    span = null;
-
-    for (let tempSpan of spans) {
-        if ((await tempSpan.getAttribute("data-qa")) == "mfeCtaMain#offer1#discountDescriptor") {
-            span = tempSpan;
+    let fatherSpanOptions = await driver.findElements(By.className("psw-l-line-left"));
+    let span = null;
+    for (fatherSpan of fatherSpanOptions) {
+        spanOptions = await fatherSpan.findElements(By.className("psw-c-t-2"));
+        if (spanOptions.length > 0) {
+            span = spanOptions[0];
             break;
         }
     }

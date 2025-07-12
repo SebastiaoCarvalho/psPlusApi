@@ -2,18 +2,26 @@
 
 > API that shows you the benefits of the different types of PsPlus subscriptions.
 
+## Description
+
+This is an API developed in JavaScript that uses Selenium to scrape the official PlayStation website to retrieve information about the free games of different PlayStation Plus subscription types. The information is extracted from the United States version of the [PlayStation website](https://www.playstation.com/en-us/ps-plus/).
+
 
 ## Using this API
 
-To use this API in localhost you need to follow the steps below
+### Requirements
 
-- Install dependencies:
+- Node.js (version 17)
+- npm (version 8)
+
+### Installation
+
 
 ```sh
 npm i
 ```
 
-- Run the program
+### Running the API
 
 ```sh
 npm start
@@ -21,7 +29,7 @@ npm start
 
 # Build website
 
-If you wish to create a build of the website used for the API documentation, follow the steps bellow
+TODO
 
 ## Documentation
 

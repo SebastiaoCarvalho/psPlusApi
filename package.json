@@ -18,8 +18,8 @@
   },
   "homepage": "https://github.com/SebastiaoCarvalho/psPlusApi#readme",
   "engines": {
-    "node": "17.1.0",
-    "npm": "8.1.2"
+    "node": "17",
+    "npm": "8"
   },
   "dependencies": {
     "express": "^4.18.1",
