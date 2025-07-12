@@ -21,7 +21,9 @@ async function getPsPlusEssentialGames() {
             let description = await box.findElement(By.css("p")).getText();
             let img = await box.findElement(By.className("imageblock")).findElement(By.css("source")).getAttribute("srcset");
             let url = await box.findElement(By.className("btn--cta__btn-container")).findElement(By.css("a")).getAttribute("href");
-            let  game = new Game(title, description, img, url);
+            let newDriver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
+            let rating = await getGameRating(newDriver, url);
+            let game = new Game(title, description, img, url, rating);
             games.push(game);
         }
         let date = await getEssentialExpirationDate(driver, games[0].url);
@@ -31,6 +33,13 @@ async function getPsPlusEssentialGames() {
         await driver.quit();
     }
     return obj;
+}
+
+async function getGameRating(driver, url) {
+    driver.get(url);
+    let starRating = await driver.findElement(By.className("star-rating"));
+    let rating = await starRating.findElement(By.className("rating__number"));
+    return await rating.getText();
 }
 
 async function saveScreenShot(fileName, driver) {
