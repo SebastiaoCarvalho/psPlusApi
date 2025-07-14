@@ -27,10 +27,10 @@ npm i
 npm start
 ```
 
-# Build website
+# Website
 
-TODO
+The website is built automatically using Swagger. In localhost, go to [localhost:3030/api-docs](localhost:3030/api-docs).
 
 ## Documentation
 
-Apart from the [documentation site](https://www.google.com), the internal documentation of the API can be found in the [docs folder](./docs/).
+Apart from the Swagger website, the internal documentation of the API can be found in the [docs folder](./docs/).
