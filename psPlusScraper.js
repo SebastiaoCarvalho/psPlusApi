@@ -23,7 +23,8 @@ async function getPsPlusEssentialGames() {
             let url = await box.findElement(By.className("btn--cta__btn-container")).findElement(By.css("a")).getAttribute("href");
             let newDriver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
             let rating = await getGameRating(newDriver, url);
-            let game = new Game(title, description, img, url, rating);
+            let genres = await getGameGenres(newDriver, url);
+            let game = new Game(title, description, img, url, rating, genres);
             games.push(game);
         }
         let date = await getEssentialExpirationDate(driver, games[0].url);
@@ -40,6 +41,19 @@ async function getGameRating(driver, url) {
     let starRating = await driver.findElement(By.className("star-rating"));
     let rating = await starRating.findElement(By.className("rating__number"));
     return await rating.getText();
+}
+
+async function getGameGenres(driver, url) {
+    driver.get(url);
+
+    let dds = await driver.findElements(By.css("dd"));
+    for (ddOption of dds) {
+        if ((await ddOption.getAttribute("data-qa")) === "gameInfo#releaseInformation#genre-value") {
+            let span = ddOption.findElement(By.css("span"));
+            return await span.getText();
+        }
+    }
+    return null;
 }
 
 async function saveScreenShot(fileName, driver) {
@@ -84,12 +98,13 @@ async function getEssentialExpirationDate(driver, url) {
 }
 
 class Game {
-    constructor(title, description, imageUrl, url, rating=null) {
+    constructor(title, description, imageUrl, url, rating=null, genres=null) {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
         this.url = url;
         this.rating = rating;
+        this.genres = genres;
     }
 }
 
