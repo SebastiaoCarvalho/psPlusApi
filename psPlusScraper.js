@@ -25,9 +25,15 @@ async function getPsPlusEssentialGames() {
             let description = await box.findElement(By.css("p")).getText();
             let img = await box.findElement(By.className("imageblock")).findElement(By.css("source")).getAttribute("srcset");
             let url = await box.findElement(By.className("btn--cta__btn-container")).findElement(By.css("a")).getAttribute("href");
-            let newDriver = await getDriver();
-            let rating = await getGameRating(newDriver, url);
-            let genres = await getGameGenres(newDriver, url);
+            let rating = null;
+            let genres = null;
+            try {
+                let newDriver = await getDriver();
+                rating = await getGameRating(newDriver, url);
+                genres = await getGameGenres(newDriver, url);
+                await newDriver.quit();
+            }
+            catch (e) {}
             let game = new Game(title, description, img, url, rating, genres);
             games.push(game);
         }
@@ -61,38 +67,51 @@ async function getGameGenres(driver, url) {
 }
 
 async function getPsPlusExtraNewGames() {
-    return await fetchGamesFromCarousel(0);
+    return await fetchGamesFromCarousel(1);
 }
 
 async function getPsPlusPremiumNewGames() {
-    return await fetchGamesFromCarousel(1);
+    return await fetchGamesFromCarousel(3);
 }
 
 async function fetchGamesFromCarousel(carouselNumber) {
     let driver = await getDriver();
     let obj = {};
     try {
-        driver.get("https://www.playstation.com/pt-pt/ps-plus/whats-new/");
+        driver.get("https://www.playstation.com/en-us/ps-plus/whats-new/");
         saveScreenShot("test.png", driver);
 
-        let carousels = await driver.findElements(By.css("div[class*='simple-carousel  simple-carousel--same-height']"));
+        let carousels = await driver.findElements(By.css("div[class*='simple-carousel simple-carousel--same-height']"));
         if (carousels.length < carouselNumber + 1) {
             return obj;
         }
         let carousel = carousels[carouselNumber]; // Extra is the first and Premium is the second
         let cards = await carousel.findElements(By.css("a[class*='card']"));
         let nextButton = await carousel.findElement(By.css("div[class='btn--quick-action carousel-nav-next btn--quick-action--large btn--quick-action--primary']"));
-        console.log(nextButton);
-        cards = cards.slice(0, cards.length/2); // For some reason the carousel has 2 sequences of the same cards
+        if (cards.length > 5) cards = cards.slice(0, cards.length/2); // For some reason the carousel has 2 sequences of the same cards
         let games = [];
         for (let i = 0; i < cards.length; i++) {
             let card = cards[i];
             let title = await card.findElement(By.css("h5")).getText();
-            let description = await card.findElement(By.css("p[class='txt-style-utility mt--none']")).getText();
+            let description = null;
+            try {
+                description = await card.findElement(By.css("p[class='txt-style-base']")).getText();
+            } 
+            catch (e) {}
             let img = await card.findElement(By.css("picture")).findElement(By.css("source")).getAttribute("srcset");
             let url = await card.getAttribute("href");
-            let game = new Game(title, description, img, url);
-            await nextButton.click();
+            let rating = null;
+            let genres = null;
+            try {
+                let newDriver = await getDriver();
+                rating = await getGameRating(newDriver, url);
+                genres = await getGameGenres(newDriver, url);
+                await newDriver.quit();
+            }
+            catch (e) {}
+            console.log("Game: " + title + " - " + url);
+            let game = new Game(title, description, img, url, rating, genres);
+            if (nextButton != null && i < cards.length - 1) await nextButton.click();
             games.push(game);
         }
         obj = games;
@@ -105,10 +124,9 @@ async function fetchGamesFromCarousel(carouselNumber) {
 
 async function getPsPlusExtraAllGames() {
     let driver = await getDriver();
-    let obj = {};
+    let obj = []
     try {
-        driver.get("https://www.playstation.com/pt-pt/ps-plus/games/");
-        saveScreenShot("test.png", driver);
+        driver.get("https://www.playstation.com/en-us/ps-plus/games/");
 
         let gamesListScreens = await driver.findElement(By.className("autogameslist"))
                 .findElements(By.css("div[class*='tabs__tab-content']"));

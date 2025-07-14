@@ -122,11 +122,15 @@ app.get('/games/extra/all', async (request, response) => {
  *         url:
  *           type: string
  *           description: The game url
- *           example: "https://store.playstation.com/pt-pt/product/EP9000-CUSA01073_00-RCPS400000000000"
+ *           example: "https://www.playstation.com/en-us/games/ratchet-and-clank/"
  *         rating:
  *           type: string
- *           description: The game rating out of 10
- *           example: "8.5"
+ *           description: The game rating out of 5 stars
+ *           example: "4.2"
+ *         genre:
+ *          type: string
+ *          description: The genres of the game
+ *          example: "Adventure"
  */
 async function parseGames(data) {
     endDate = new Date(data.date);
