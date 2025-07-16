@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const { getPsPlusEssentialGames, getPsPlusExtraNewGames, getPsPlusPremiumNewGames, getPsPlusExtraAllGames } = require('./psPlusScraper');
+const { getPsPlusEssentialGames, getPsPlusExtraNewGames, getPsPlusPremiumNewGames, getPsPlusExtraAllGames, getFreeTrialGames } = require('./psPlusScraper');
 const { get } = require("selenium-webdriver/http");
 
 const app = express();
@@ -96,8 +96,55 @@ app.get('/games/premium', async (request, response) => {
     response.json(await getPsPlusPremiumNewGames());
 });
 
+
+/**
+ * @swagger
+ * /games/extra/all:
+ *   get:
+ *     summary: Get all the games in Ps Plus Extra tier
+ *     tags: [Games]
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               description: All the games that are free for Ps Plus Extra tier
+ *               items:
+ *                 $ref: '#/components/schemas/Game'
+ * 
+ *       500:
+ *         description: Some server error
+ *
+ */
 app.get('/games/extra/all', async (request, response) => {
     response.json(await getPsPlusExtraAllGames());
+});
+
+/**
+ * @swagger
+ * /games/premium/trials:
+ *   get:
+ *     summary: Get the free trial games in Ps Plus Premium tier
+ *     tags: [Games]
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               description: All the free trial games that are available for the Ps Plus Premium tier
+ *               items:
+ *                 $ref: '#/components/schemas/Game'
+ * 
+ *       500:
+ *         description: Some server error
+ *
+ */
+app.get('/games/premium/trials', async (request, response) => {
+  response.json(await getFreeTrialGames());
 });
 
 /**
@@ -133,7 +180,8 @@ app.get('/games/extra/all', async (request, response) => {
  *          example: "Adventure"
  */
 async function parseGames(data) {
-    endDate = new Date(data.date);
+  console.log(data);
+    endDate = data.date != null ? new Date(data.date) : null;
     return {current : data.games, endDate : endDate};
 }
 

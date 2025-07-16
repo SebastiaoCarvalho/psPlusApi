@@ -2,6 +2,7 @@ const {Builder, By, until} = require('selenium-webdriver');
 const {Options} = require('selenium-webdriver/chrome');
 const { get } = require('selenium-webdriver/http');
 const fs = require('fs');
+const { console } = require('inspector');
 
 function getDriver() {
     let options = new Options();
@@ -14,7 +15,6 @@ async function getPsPlusEssentialGames() {
     let obj = {};
     try {
         driver.get("https://www.playstation.com/en-us/ps-plus/whats-new/");
-        saveScreenShot("test.png", driver);
 
     
         let boxes = await driver.findElement(By.className("cmp-experiencefragment--wn-latest-monthly-games-content")).findElements(By.className("box--light"));
@@ -37,8 +37,19 @@ async function getPsPlusEssentialGames() {
             let game = new Game(title, description, img, url, rating, genres);
             games.push(game);
         }
-        let date = await getEssentialExpirationDate(driver, games[0].url);
-        obj = {games : games, date : date};
+        let date = null;
+        for (let game of games) {
+            let newDriver = await getDriver();
+            try {
+                date = await getEssentialExpirationDate(newDriver, game.url);
+                break;
+            }
+            catch (e) {}
+            finally {
+                await newDriver.quit();
+            }
+        }
+        obj = {games: games, date: date};
     }
     finally {
         await driver.quit();
@@ -78,8 +89,7 @@ async function fetchGamesFromCarousel(carouselNumber) {
     let driver = await getDriver();
     let obj = {};
     try {
-        driver.get("https://www.playstation.com/en-us/ps-plus/whats-new/");
-        saveScreenShot("test.png", driver);
+        await driver.get("https://www.playstation.com/en-us/ps-plus/whats-new/");
 
         let carousels = await driver.findElements(By.css("div[class*='simple-carousel simple-carousel--same-height']"));
         if (carousels.length < carouselNumber + 1) {
@@ -123,24 +133,28 @@ async function fetchGamesFromCarousel(carouselNumber) {
 }
 
 async function getPsPlusExtraAllGames() {
+    return [];
+}
+
+async function getFreeTrialGames() {
     let driver = await getDriver();
     let obj = []
     try {
-        driver.get("https://www.playstation.com/en-us/ps-plus/games/");
+        await driver.get("https://www.playstation.com/en-us/ps-plus/games/");
 
-        let gamesListScreens = await driver.findElement(By.className("autogameslist"))
-                .findElements(By.css("div[class*='tabs__tab-content']"));
-        console.log(gamesListScreens.length)
+        let gameList = await driver.findElement(By.className("autogameslist"))
+                .findElements(By.css("p[class='txt-style-base']"));
         let games = [];
-        for (let gamesListScreen of gamesListScreens) {
-            let gamesElements = await gamesListScreen.findElements(By.css("p[class='txt-style-base']"));
-            for (let gameElement of gamesElements) {
-                let gameLinkElement = await gameElement.findElement(By.css("a"));
-                let title = await gameLinkElement.getAttribute("data-dtm-label");
-                let url = await gameLinkElement.getAttribute("href");
-                let game = new Game(title, null, null, url);
+        for (let gameElement of gameList) {
+            let gameLinkElement = await gameElement.findElement(By.css("a"));
+            let url = await gameLinkElement.getAttribute("href");
+            let newDriver = await getDriver();
+            try {
+                let game = await scrapeGameFromStoreUrl(newDriver, url);
                 games.push(game);
             }
+            catch (e) {console.error("Error scraping game from URL: " + url, e);}
+            await newDriver.quit();
         }
         obj = games;
     }
@@ -148,6 +162,17 @@ async function getPsPlusExtraAllGames() {
         await driver.quit();
     }
     return obj;
+}
+
+async function scrapeGameFromStoreUrl(driver, url) {
+    await driver.get(url);
+    let title = await driver.findElement(By.css("h1[class*='psw-m-b-5 psw-t-title-l']")).getText();
+    let description = await driver.findElement(By.css("p[data-qa='mfe-game-overview#description']")).getText();
+    let img = null; // TODO : Need to find a way to get the image
+    let rating = await driver.findElement(By.css("div[data-qa='mfe-game-title#average-rating']")).getText();
+    let genres = await driver.findElement(By.css("dd[data-qa='gameInfo#releaseInformation#genre-value']")).findElement(By.css("span")).getText();
+    let game = new Game(title, description, img, url, rating, genres);
+    return game;
 }
 
 async function saveScreenShot(fileName, driver) {
@@ -164,21 +189,27 @@ async function getEssentialExpirationDate(driver, url) {
     for (fatherSpan of fatherSpanOptions) {
         spanOptions = await fatherSpan.findElements(By.className("psw-c-t-2"));
         if (spanOptions.length > 0) {
-            span = spanOptions[0];
-            break;
+            for (spanOption of spanOptions) {
+                if (await spanOption.getAttribute("data-qa") === "mfeCtaMain#offer0#discountDescriptor") {
+                    span = spanOption;
+                    break;
+                }
+                if (span != null) break;
+            }
         }
     }
 
     let text = await span.getText();
 
+    console.log("Text: " + text);
     words = text.split(" ");
-
+    console.log(words);
     i = 0;
     while (i < words.length && ! words[i].includes("/"))
         i += 1;
 
     let dateValues = words[i].split("/");
-    let date = dateValues[1] + "/" + dateValues[0] + "/" + dateValues[2] + " ";
+    let date = dateValues[0] + "/" + dateValues[1] + "/" + dateValues[2] + " ";
 
     i += 1;
 
@@ -206,3 +237,4 @@ exports.getPsPlusEssentialGames = getPsPlusEssentialGames;
 exports.getPsPlusExtraNewGames = getPsPlusExtraNewGames;
 exports.getPsPlusPremiumNewGames = getPsPlusPremiumNewGames;
 exports.getPsPlusExtraAllGames = getPsPlusExtraAllGames;
+exports.getFreeTrialGames = getFreeTrialGames;
